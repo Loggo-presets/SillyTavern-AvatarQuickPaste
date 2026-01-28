@@ -21,9 +21,19 @@ const TARGET_SELECTORS = [
  * @returns {HTMLElement|null} The associated file input or null if not valid.
  */
 function findAssociatedFileInput(element) {
-    // 1. Check Main Sidebar
-    if (element.closest('#avatar_div')) {
-        return document.getElementById('avatar_upload');
+    // 1. Check Main Sidebar: #avatar_div
+    const avatarDiv = element.closest('#avatar_div');
+    if (avatarDiv) {
+        // Try to find the input INSIDE the div first (most reliable)
+        const innerInput = avatarDiv.querySelector('input[type="file"]');
+        if (innerInput) return innerInput;
+
+        // Fallback to known IDs if not found inside (legacy/variant support)
+        const addBtn = document.getElementById('add_avatar_button');
+        if (addBtn) return addBtn;
+
+        const uploadBtn = document.getElementById('avatar_upload');
+        if (uploadBtn) return uploadBtn;
     }
 
     // 2. Check User Settings
