@@ -62,11 +62,25 @@ function findAssociatedFileInput(element) {
     }
 
     // 5. Special Case: Character Management / Import (avatar_load_preview)
+    // The screenshot shows this maps to 'add_avatar_button'
     if (element.id === 'avatar_load_preview' || element.closest('#avatar_load_preview')) {
-        return document.getElementById('avatar_load');
+        const directInput = document.getElementById('add_avatar_button');
+        if (directInput) return directInput;
     }
 
-    // Fallback: Label check
+    // 6. Robust Label Check (The "Gold Standard")
+    // If the clicked element is inside a label that points to a file input
+    const parentLabel = element.closest('label');
+    if (parentLabel && parentLabel.htmlFor) {
+        const input = document.getElementById(parentLabel.htmlFor);
+        if (input && input.type === 'file') return input;
+    } else if (parentLabel) {
+        // Label might contain the input directly without 'for'
+        const innerInput = parentLabel.querySelector('input[type="file"]');
+        if (innerInput) return innerInput;
+    }
+
+    // Fallback: Direct Label check (if we clicked the label itself)
     if (element.tagName === 'LABEL') {
         const inputId = element.getAttribute('for');
         if (inputId) {
