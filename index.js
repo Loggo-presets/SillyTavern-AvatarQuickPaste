@@ -36,7 +36,22 @@ function findAssociatedFileInput(element) {
         if (uploadBtn) return uploadBtn;
     }
 
-    // 2. Check User Settings
+    // 2. Check Persona Management Avatar Button
+    // The persona avatar is a button with id "persona_set_image_button"
+    if (element.closest('#persona_set_image_button') || element.id === 'persona_set_image_button') {
+        // The file input for persona is typically "avatar_upload_overrideValue" or similar
+        // Let's search for it in the persona management container
+        const personaContainer = document.querySelector('#rm_ch_create_block, .rm_ch_create_block, [id*="persona"]');
+        if (personaContainer) {
+            const personaInput = personaContainer.querySelector('input[type="file"]');
+            if (personaInput) return personaInput;
+        }
+        // Fallback to common persona input IDs
+        const personaUpload = document.getElementById('avatar_upload_overrideValue');
+        if (personaUpload) return personaUpload;
+    }
+
+    // 3. Check User Settings
     if (element.closest('#user_avatar_display') || element.closest('.user_avatar_display')) {
         return document.getElementById('user_avatar_upload');
     }
