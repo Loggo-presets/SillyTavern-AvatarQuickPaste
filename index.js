@@ -36,24 +36,14 @@ function findAssociatedFileInput(element) {
         if (uploadBtn) return uploadBtn;
     }
 
-    // 2. Check Persona Management Avatar Button (BUTTON ONLY, not the avatar image)
-    // First, BLOCK if clicking on persona card avatar images
-    const isPersonaCardImage = element.closest('.persona_card, .avatar_load_preview, [id*="avatar_load_preview"]') &&
-        (element.tagName === 'IMG' || element.closest('img'));
-
-    if (isPersonaCardImage) {
-        // Do NOT trigger on persona card images
-        return null;
-    }
-
-    // Now check for persona buttons (toolbar icon, etc)
-    const isPersonaButton = element.closest('.rm_ch_create_block') &&
-        (element.classList?.contains('fa-image') ||
-            element.id === 'persona_set_image_button' ||
-            element.closest('#persona_set_image_button'));
+    // 2. Check Persona Management Buttons (not avatar images)
+    // Check if this is a button/icon in the persona area (not a persona avatar image)
+    const isPersonaButton = (element.classList?.contains('fa-image') ||
+        element.id === 'persona_set_image_button' ||
+        element.closest('#persona_set_image_button')) &&
+        element.closest('.rm_ch_create_block');
 
     if (isPersonaButton) {
-        // Find the persona container
         const personaBlock = element.closest('.rm_ch_create_block');
         if (personaBlock) {
             const personaInput = personaBlock.querySelector('input[type="file"]');
