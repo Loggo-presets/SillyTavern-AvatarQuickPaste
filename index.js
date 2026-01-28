@@ -39,18 +39,35 @@ function findAssociatedFileInput(element) {
         return popup.querySelector('input[type="file"][accept*="image"]');
     }
 
-    // 4. Generic "Persona" or other avatar containers (e.g. creating new character)
-    // If the element is a label for a file input, or wraps one
+    // 4. Generic "Persona" or other avatar containers
+    // Recursive search up 4 levels to find a container that MIGHT hold a file input
+    let parent = element;
+    for (let i = 0; i < 4; i++) {
+        if (!parent) break;
+
+        // Look for typical wrapper classes
+        if (parent.classList && (parent.classList.contains('avatar') || parent.classList.contains('avatar-container') || parent.id.includes('avatar'))) {
+            // Found a potential container. Look inside for input.
+            const input = parent.querySelector('input[type="file"]');
+            if (input) return input;
+
+            // Or look for a sibling input (common in some layouts)
+            if (parent.parentElement) {
+                const siblingInput = parent.parentElement.querySelector('input[type="file"]');
+                if (siblingInput) return siblingInput;
+            }
+        }
+
+        parent = parent.parentElement;
+    }
+
+    // Fallback: Label check
     if (element.tagName === 'LABEL') {
         const inputId = element.getAttribute('for');
         if (inputId) {
             const input = document.getElementById(inputId);
-            if (input && input.type === 'file' && input.accept.includes('image')) {
-                return input;
-            }
+            if (input && input.type === 'file') return input;
         }
-        const innerInput = element.querySelector('input[type="file"]');
-        if (innerInput) return innerInput;
     }
 
     return null;
@@ -139,23 +156,37 @@ function applyFileToInput(blob, input) {
     input.dispatchEvent(changeEvent);
 }
 
-// Global Click Listener for Ctrl + Click
-document.addEventListener('click', (e) => {
-    // Check for Ctrl Key
-    if (!e.ctrlKey) return;
+document.addEventListener('contextmenu', (e) => {
+    // If we want to blocking context menu on ctrl+click, we might need this.
+    // But let's stick to mousedown for now.
+});
+
+// Use mousedown instead of click to intercept earlier
+document.addEventListener('mousedown', (e) => {
+    // Check for Ctrl Key + Left Click (button 0)
+    if (!e.ctrlKey || e.button !== 0) return;
+
+    console.log(`[${MODULE_NAME}] Ctrl+Mousedown detected on:`, e.target);
 
     // Check if target is relevant
-    // We walk up the tree slightly to match containers
     const targetInput = findAssociatedFileInput(e.target);
 
     if (targetInput) {
-        // Stop default behavior (e.g. opening file explorer)
+        // Stop default behavior (e.g. opening file explorer or dragging)
         e.preventDefault();
         e.stopPropagation();
 
-        console.log(`[${MODULE_NAME}] Ctrl+Click detected on avatar container. Opening Modal.`);
-        openQuickPasteModal(targetInput);
-    }
-}, { capture: true }); // Capture phase to intercept before ST handles clicks
+        console.log(`[${MODULE_NAME}] Valid target found. Opening Modal.`);
 
-console.log(`[${MODULE_NAME}] Initialized. Ctrl+Click on avatars to quick paste.`);
+        // We use a slight timeout to ensure we don't conflict with other immediate handlers
+        // and to allow the mouseup to clear cleanly if needed
+        setTimeout(() => openQuickPasteModal(targetInput), 50);
+    } else {
+        console.log(`[${MODULE_NAME}] No valid file input association found for this element.`);
+    }
+}, { capture: true });
+
+console.log(`[${MODULE_NAME}] Initialized v1.1. Listening for Ctrl+LeftClick.`);
+if (typeof toastr !== 'undefined') {
+    toastr.info(`${MODULE_NAME} Loaded! Ctrl+Click avatars to paste.`, 'Extension Ready');
+}
