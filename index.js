@@ -195,7 +195,7 @@ document.addEventListener('mousedown', (e) => {
     // Check for Ctrl Key + Left Click (button 0)
     if (!e.ctrlKey || e.button !== 0) return;
 
-    console.log(`[${MODULE_NAME}] Ctrl+Mousedown detected on:`, e.target);
+
 
     // Check if target is relevant
     const targetInput = findAssociatedFileInput(e.target);
@@ -205,7 +205,7 @@ document.addEventListener('mousedown', (e) => {
         e.preventDefault();
         e.stopPropagation();
 
-        console.log(`[${MODULE_NAME}] Target detected:`, targetInput);
+
 
         // We use a slight timeout to ensure we don't conflict with other immediate handlers
         // and to allow the mouseup to clear cleanly if needed
@@ -213,7 +213,4 @@ document.addEventListener('mousedown', (e) => {
     }
 }, { capture: true });
 
-console.log(`[${MODULE_NAME}] Initialized v1.2. Listening for Ctrl+LeftClick.`);
-if (typeof toastr !== 'undefined') {
-    toastr.info(`${MODULE_NAME} Ready`, 'Extension Loaded');
-}
+console.log(`[${MODULE_NAME}] Initialized v1.3. Listening for Ctrl+LeftClick.`);
