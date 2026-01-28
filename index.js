@@ -49,26 +49,21 @@ function findAssociatedFileInput(element) {
     }
 
     // 3. Check Persona Set Image Button (the toolbar button ONLY)
-    if (element.id === 'persona_set_image_button' || element.closest('#persona_set_image_button')) {
-        // Find the CURRENTLY ACTIVE/SELECTED persona, not just any persona
-        // Check for: selected state, highlighted card, or the visible editing area
+    // CRITICAL: Only trigger if clicking the ACTUAL BUTTON, not just any element in persona area
+    const isActualButton = element.id === 'persona_set_image_button' ||
+        element.closest('#persona_set_image_button');
 
-        // Option 1: Look for the selected persona card (has a highlighted/selected state)
-        let activePersonaCard = document.querySelector('.persona_card.selected, .persona_card[class*="selected"], .persona_card.border_primary');
+    if (isActualButton) {
+        // NOW find the currently selected persona's file input
+        // Look for the selected persona card (has a border_primary or selected class)
+        let activePersonaCard = document.querySelector('.persona_card.border_primary, .persona_card.selected');
 
         if (activePersonaCard) {
             const personaInput = activePersonaCard.querySelector('input[type="file"]');
             if (personaInput) return personaInput;
         }
 
-        // Option 2: Look for the currently visible persona editing area
-        const editingArea = document.querySelector('.rm_ch_create_block:not([style*="display: none"]), .rm_ch_create_block.selected');
-        if (editingArea) {
-            const personaInput = editingArea.querySelector('input[type="file"]');
-            if (personaInput) return personaInput;
-        }
-
-        // Option 3: Fallback - find the first visible persona block
+        // Fallback: find the first visible persona editing block
         const visibleBlock = document.querySelector('.rm_ch_create_block');
         if (visibleBlock) {
             const personaInput = visibleBlock.querySelector('input[type="file"]');
