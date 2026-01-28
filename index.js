@@ -155,7 +155,6 @@ function openQuickPasteModal(targetInput) {
 
         if (blob) {
             applyFileToInput(blob, targetInput);
-            toastr.success('Image pasted!', 'Avatar Quick Paste');
             cleanup();
         } else {
             toastr.warning('No image found in clipboard.', 'Avatar Quick Paste');
