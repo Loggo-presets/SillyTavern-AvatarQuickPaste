@@ -36,38 +36,7 @@ function findAssociatedFileInput(element) {
         if (uploadBtn) return uploadBtn;
     }
 
-    // 2. Check Persona Management Avatar Button
-    // Each persona card has its own avatar button and file input
-    // This includes: the main button, toolbar buttons, and icon buttons
-    const isPersonaButton = element.closest('#persona_set_image_button') ||
-        element.id === 'persona_set_image_button' ||
-        element.classList?.contains('menu_button.fa-image') ||
-        (element.classList?.contains('fa-image') && element.closest('.rm_ch_create_block, [id*="persona"]'));
-
-    if (isPersonaButton) {
-        // CRITICAL: Find the SPECIFIC persona card that was clicked
-        // We must NOT search upwards or we'll find the "Create" button's input
-        // Look for the immediate persona card container
-        const personaCard = element.closest('.persona_card, .rm_ch_create_block_avatar');
-
-        if (personaCard) {
-            // Look for the file input ONLY within this specific card
-            const personaInput = personaCard.querySelector('input[type="file"]');
-            if (personaInput) return personaInput;
-        }
-
-        // ONLY if we didn't find a card, check if this is the "Create" area itself
-        // by looking for the rm_ch_create_block that is NOT inside a persona card
-        if (!personaCard) {
-            const createBlock = element.closest('.rm_ch_create_block');
-            if (createBlock && !createBlock.closest('.persona_card')) {
-                const createInput = createBlock.querySelector('input[type="file"]');
-                if (createInput) return createInput;
-            }
-        }
-    }
-
-    // 3. Check User Settings
+    // 2. Check User Settings
     if (element.closest('#user_avatar_display') || element.closest('.user_avatar_display')) {
         return document.getElementById('user_avatar_upload');
     }
