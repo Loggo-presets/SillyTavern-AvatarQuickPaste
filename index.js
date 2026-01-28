@@ -61,6 +61,11 @@ function findAssociatedFileInput(element) {
         parent = parent.parentElement;
     }
 
+    // 5. Special Case: Character Management / Import (avatar_load_preview)
+    if (element.id === 'avatar_load_preview' || element.closest('#avatar_load_preview')) {
+        return document.getElementById('avatar_load');
+    }
+
     // Fallback: Label check
     if (element.tagName === 'LABEL') {
         const inputId = element.getAttribute('for');
@@ -176,17 +181,15 @@ document.addEventListener('mousedown', (e) => {
         e.preventDefault();
         e.stopPropagation();
 
-        console.log(`[${MODULE_NAME}] Valid target found. Opening Modal.`);
+        console.log(`[${MODULE_NAME}] Target detected:`, targetInput);
 
         // We use a slight timeout to ensure we don't conflict with other immediate handlers
         // and to allow the mouseup to clear cleanly if needed
         setTimeout(() => openQuickPasteModal(targetInput), 50);
-    } else {
-        console.log(`[${MODULE_NAME}] No valid file input association found for this element.`);
     }
 }, { capture: true });
 
-console.log(`[${MODULE_NAME}] Initialized v1.1. Listening for Ctrl+LeftClick.`);
+console.log(`[${MODULE_NAME}] Initialized v1.2. Listening for Ctrl+LeftClick.`);
 if (typeof toastr !== 'undefined') {
-    toastr.info(`${MODULE_NAME} Loaded! Ctrl+Click avatars to paste.`, 'Extension Ready');
+    toastr.info(`${MODULE_NAME} Ready`, 'Extension Loaded');
 }
