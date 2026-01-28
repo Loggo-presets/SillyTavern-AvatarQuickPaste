@@ -45,24 +45,25 @@ function findAssociatedFileInput(element) {
         (element.classList?.contains('fa-image') && element.closest('.rm_ch_create_block, [id*="persona"]'));
 
     if (isPersonaButton) {
-        // Find the specific persona card that was clicked
-        // The button structure is typically: persona card > button
-        // We need to find the card first, then look for its specific input
-        const personaCard = element.closest('.persona_card, [id*="persona"], .rm_ch_create_block, .rm_ch_create_block_avatar');
+        // CRITICAL: Find the SPECIFIC persona card that was clicked
+        // We must NOT search upwards or we'll find the "Create" button's input
+        // Look for the immediate persona card container
+        const personaCard = element.closest('.persona_card, .rm_ch_create_block_avatar');
+
         if (personaCard) {
-            // Look for the file input within THIS specific persona card
+            // Look for the file input ONLY within this specific card
             const personaInput = personaCard.querySelector('input[type="file"]');
             if (personaInput) return personaInput;
         }
 
-        // Alternative: the button might be a sibling or nearby element to the input
-        // Search in parent containers going up a few levels
-        let searchParent = element.parentElement;
-        for (let i = 0; i < 5; i++) {
-            if (!searchParent) break;
-            const nearbyInput = searchParent.querySelector('input[type="file"]');
-            if (nearbyInput) return nearbyInput;
-            searchParent = searchParent.parentElement;
+        // ONLY if we didn't find a card, check if this is the "Create" area itself
+        // by looking for the rm_ch_create_block that is NOT inside a persona card
+        if (!personaCard) {
+            const createBlock = element.closest('.rm_ch_create_block');
+            if (createBlock && !createBlock.closest('.persona_card')) {
+                const createInput = createBlock.querySelector('input[type="file"]');
+                if (createInput) return createInput;
+            }
         }
     }
 
@@ -168,7 +169,16 @@ function openQuickPasteModal(targetInput) {
         }
     });
 
+    // Close on ESC key
+    const escHandler = (e) => {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+            cleanup();
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+
     // Handle Paste (The Core Logic)
+
     const pasteHandler = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -197,6 +207,7 @@ function openQuickPasteModal(targetInput) {
     function cleanup() {
         modal.remove();
         document.removeEventListener('paste', pasteHandler, { capture: true });
+        document.removeEventListener('keydown', escHandler);
     }
 }
 
