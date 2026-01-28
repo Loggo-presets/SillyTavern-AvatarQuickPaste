@@ -36,7 +36,26 @@ function findAssociatedFileInput(element) {
         if (uploadBtn) return uploadBtn;
     }
 
-    // 2. Check User Settings
+    // 2. Check Persona Management Avatar Button (BUTTON ONLY, not the avatar image)
+    // Only trigger on actual buttons, not clicking the persona avatar image itself
+    const isPersonaButton = (element.closest('#persona_set_image_button') ||
+        element.id === 'persona_set_image_button' ||
+        element.classList?.contains('menu_button') ||
+        element.classList?.contains('fa-image')) &&
+        // EXCLUDE if clicking the actual avatar image
+        !element.closest('img#avatar_load_preview') &&
+        !element.id?.includes('avatar_load_preview');
+
+    if (isPersonaButton) {
+        // Find the persona container
+        const personaBlock = element.closest('.rm_ch_create_block');
+        if (personaBlock) {
+            const personaInput = personaBlock.querySelector('input[type="file"]');
+            if (personaInput) return personaInput;
+        }
+    }
+
+    // 3. Check User Settings
     if (element.closest('#user_avatar_display') || element.closest('.user_avatar_display')) {
         return document.getElementById('user_avatar_upload');
     }
