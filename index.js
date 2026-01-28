@@ -37,14 +37,20 @@ function findAssociatedFileInput(element) {
     }
 
     // 2. Check Persona Management Avatar Button (BUTTON ONLY, not the avatar image)
-    // Only trigger on actual buttons, not clicking the persona avatar image itself
-    const isPersonaButton = (element.closest('#persona_set_image_button') ||
-        element.id === 'persona_set_image_button' ||
-        element.classList?.contains('menu_button') ||
-        element.classList?.contains('fa-image')) &&
-        // EXCLUDE if clicking the actual avatar image
-        !element.closest('img#avatar_load_preview') &&
-        !element.id?.includes('avatar_load_preview');
+    // First, BLOCK if clicking on persona card avatar images
+    const isPersonaCardImage = element.closest('.persona_card, .avatar_load_preview, [id*="avatar_load_preview"]') &&
+        (element.tagName === 'IMG' || element.closest('img'));
+
+    if (isPersonaCardImage) {
+        // Do NOT trigger on persona card images
+        return null;
+    }
+
+    // Now check for persona buttons (toolbar icon, etc)
+    const isPersonaButton = element.closest('.rm_ch_create_block') &&
+        (element.classList?.contains('fa-image') ||
+            element.id === 'persona_set_image_button' ||
+            element.closest('#persona_set_image_button'));
 
     if (isPersonaButton) {
         // Find the persona container
