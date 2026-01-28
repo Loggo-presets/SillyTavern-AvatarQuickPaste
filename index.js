@@ -37,18 +37,33 @@ function findAssociatedFileInput(element) {
     }
 
     // 2. Check Persona Management Avatar Button
-    // The persona avatar is a button with id "persona_set_image_button"
-    if (element.closest('#persona_set_image_button') || element.id === 'persona_set_image_button') {
-        // The file input for persona is typically "avatar_upload_overrideValue" or similar
-        // Let's search for it in the persona management container
-        const personaContainer = document.querySelector('#rm_ch_create_block, .rm_ch_create_block, [id*="persona"]');
-        if (personaContainer) {
-            const personaInput = personaContainer.querySelector('input[type="file"]');
+    // Each persona card has its own avatar button and file input
+    // This includes: the main button, toolbar buttons, and icon buttons
+    const isPersonaButton = element.closest('#persona_set_image_button') ||
+        element.id === 'persona_set_image_button' ||
+        element.classList?.contains('menu_button.fa-image') ||
+        (element.classList?.contains('fa-image') && element.closest('.rm_ch_create_block, [id*="persona"]'));
+
+    if (isPersonaButton) {
+        // Find the specific persona card that was clicked
+        // The button structure is typically: persona card > button
+        // We need to find the card first, then look for its specific input
+        const personaCard = element.closest('.persona_card, [id*="persona"], .rm_ch_create_block, .rm_ch_create_block_avatar');
+        if (personaCard) {
+            // Look for the file input within THIS specific persona card
+            const personaInput = personaCard.querySelector('input[type="file"]');
             if (personaInput) return personaInput;
         }
-        // Fallback to common persona input IDs
-        const personaUpload = document.getElementById('avatar_upload_overrideValue');
-        if (personaUpload) return personaUpload;
+
+        // Alternative: the button might be a sibling or nearby element to the input
+        // Search in parent containers going up a few levels
+        let searchParent = element.parentElement;
+        for (let i = 0; i < 5; i++) {
+            if (!searchParent) break;
+            const nearbyInput = searchParent.querySelector('input[type="file"]');
+            if (nearbyInput) return nearbyInput;
+            searchParent = searchParent.parentElement;
+        }
     }
 
     // 3. Check User Settings
