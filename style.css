@@ -1,0 +1,54 @@
+/* Quick Paste Modal Overlay */
+.quick-paste-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20000; /* High z-index to sit above most ST UI */
+    backdrop-filter: blur(2px);
+}
+
+.quick-paste-content {
+    background-color: var(--smart-theme-bg, #1a1b26);
+    border: 1px solid var(--smart-theme-border, #414868);
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    color: var(--smart-theme-body-text, #c0caf5);
+    font-family: var(--smart-theme-font-family, sans-serif);
+    min-width: 300px;
+}
+
+.quick-paste-content h2 {
+    margin-top: 0;
+    color: var(--smart-theme-h2-color, #7aa2f7);
+}
+
+.quick-paste-icon {
+    font-size: 4em;
+    margin-bottom: 20px;
+    color: var(--smart-theme-accent, #7dcfff);
+    display: block;
+}
+
+.quick-paste-hint {
+    margin-top: 15px;
+    font-size: 0.9em;
+    opacity: 0.7;
+}
+
+/* Animation */
+.quick-paste-modal {
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
