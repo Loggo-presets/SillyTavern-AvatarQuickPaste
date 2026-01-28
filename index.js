@@ -50,20 +50,29 @@ function findAssociatedFileInput(element) {
 
     // 3. Check Persona Set Image Button (the toolbar button ONLY)
     if (element.id === 'persona_set_image_button' || element.closest('#persona_set_image_button')) {
-        // Find the closest persona block and get its file input
-        const personaBlock = element.closest('.rm_ch_create_block, [class*="persona"]');
-        if (personaBlock) {
-            const personaInput = personaBlock.querySelector('input[type="file"]');
-            if (personaInput) {
-                console.log('[AvatarQuickPaste] Found persona input:', personaInput.id);
-                return personaInput;
-            }
+        // Find the CURRENTLY ACTIVE/SELECTED persona, not just any persona
+        // Check for: selected state, highlighted card, or the visible editing area
+
+        // Option 1: Look for the selected persona card (has a highlighted/selected state)
+        let activePersonaCard = document.querySelector('.persona_card.selected, .persona_card[class*="selected"], .persona_card.border_primary');
+
+        if (activePersonaCard) {
+            const personaInput = activePersonaCard.querySelector('input[type="file"]');
+            if (personaInput) return personaInput;
         }
-        // Fallback: search more broadly
-        const anyPersonaInput = document.querySelector('.rm_ch_create_block input[type="file"], [class*="persona"] input[type="file"]');
-        if (anyPersonaInput) {
-            console.log('[AvatarQuickPaste] Found persona input (fallback):', anyPersonaInput.id);
-            return anyPersonaInput;
+
+        // Option 2: Look for the currently visible persona editing area
+        const editingArea = document.querySelector('.rm_ch_create_block:not([style*="display: none"]), .rm_ch_create_block.selected');
+        if (editingArea) {
+            const personaInput = editingArea.querySelector('input[type="file"]');
+            if (personaInput) return personaInput;
+        }
+
+        // Option 3: Fallback - find the first visible persona block
+        const visibleBlock = document.querySelector('.rm_ch_create_block');
+        if (visibleBlock) {
+            const personaInput = visibleBlock.querySelector('input[type="file"]');
+            if (personaInput) return personaInput;
         }
     }
 
