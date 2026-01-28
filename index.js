@@ -36,18 +36,22 @@ function findAssociatedFileInput(element) {
         if (uploadBtn) return uploadBtn;
     }
 
-    // 2. Check Persona Management Buttons (not avatar images)
-    // Check if this is a button/icon in the persona area (not a persona avatar image)
-    const isPersonaButton = (element.classList?.contains('fa-image') ||
-        element.id === 'persona_set_image_button' ||
-        element.closest('#persona_set_image_button')) &&
-        element.closest('.rm_ch_create_block');
-
-    if (isPersonaButton) {
-        const personaBlock = element.closest('.rm_ch_create_block');
+    // 2. Check Persona Set Image Button (the toolbar button ONLY)
+    if (element.id === 'persona_set_image_button' || element.closest('#persona_set_image_button')) {
+        // Find the closest persona block and get its file input
+        const personaBlock = element.closest('.rm_ch_create_block, [class*="persona"]');
         if (personaBlock) {
             const personaInput = personaBlock.querySelector('input[type="file"]');
-            if (personaInput) return personaInput;
+            if (personaInput) {
+                console.log('[AvatarQuickPaste] Found persona input:', personaInput.id);
+                return personaInput;
+            }
+        }
+        // Fallback: search more broadly
+        const anyPersonaInput = document.querySelector('.rm_ch_create_block input[type="file"], [class*="persona"] input[type="file"]');
+        if (anyPersonaInput) {
+            console.log('[AvatarQuickPaste] Found persona input (fallback):', anyPersonaInput.id);
+            return anyPersonaInput;
         }
     }
 
