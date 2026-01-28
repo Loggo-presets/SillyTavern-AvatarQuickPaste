@@ -36,7 +36,19 @@ function findAssociatedFileInput(element) {
         if (uploadBtn) return uploadBtn;
     }
 
-    // 2. Check Persona Set Image Button (the toolbar button ONLY)
+    // 2. BLOCK persona card avatar images (they're buggy)
+    // These are the avatar images in persona cards - we don't want to trigger on them
+    const isPersonaCardAvatar = (element.tagName === 'IMG' || element.closest('img')) &&
+        (element.closest('.persona_card') ||
+            element.closest('.avatar-container') ||
+            element.closest('[class*="persona"]'));
+
+    if (isPersonaCardAvatar) {
+        // Explicitly return null - do NOT handle persona card images
+        return null;
+    }
+
+    // 3. Check Persona Set Image Button (the toolbar button ONLY)
     if (element.id === 'persona_set_image_button' || element.closest('#persona_set_image_button')) {
         // Find the closest persona block and get its file input
         const personaBlock = element.closest('.rm_ch_create_block, [class*="persona"]');
@@ -55,7 +67,7 @@ function findAssociatedFileInput(element) {
         }
     }
 
-    // 3. Check User Settings
+    // 4. Check User Settings
     if (element.closest('#user_avatar_display') || element.closest('.user_avatar_display')) {
         return document.getElementById('user_avatar_upload');
     }
