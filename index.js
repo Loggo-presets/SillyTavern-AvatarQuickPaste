@@ -1,137 +1,16 @@
 
 const MODULE_NAME = 'AvatarQuickPaste';
 
-// Selectors for avatars we want to enable Quick Paste on.
-// 1. Sidebar Character Avatar: #avatar_div (the container) or #avatar_div img
-// 2. User Settings Avatar: .user_avatar, #user_avatar_display
-// 3. Character Edit Popup: #character_popup .avatar-container (approximate, refined below)
-const TARGET_SELECTORS = [
-    '#avatar_div',            // Main Sidebar Avatar Container
-    '#avatar_div img',        // Main Sidebar Image
-    '#user_avatar_display',   // User Settings Avatar Display
-    '.user_avatar_display',   // Alternative class for user avatar
-    '.avatar-uploader',       // Common class for uploaders
-    '#character_popup_avatar',// Character Popup Avatar (if ID exists)
-    // Refined: The standard ST character popup uploader usually involves a label or div wrapping the input
-];
-
 /**
- * Checks if the clicked element is a valid target for Quick Paste.
- * @param {HTMLElement} element 
- * @returns {HTMLElement|null} The associated file input or null if not valid.
+ * Finds the file input associated with the clicked element.
+ * Supports: Character Avatar only
  */
 function findAssociatedFileInput(element) {
-    // 1. Check Main Sidebar: #avatar_div
-    const avatarDiv = element.closest('#avatar_div');
-    if (avatarDiv) {
-        // Try to find the input INSIDE the div first (most reliable)
-        const innerInput = avatarDiv.querySelector('input[type="file"]');
-        if (innerInput) return innerInput;
-
-        // Fallback to known IDs if not found inside (legacy/variant support)
-        const addBtn = document.getElementById('add_avatar_button');
-        if (addBtn) return addBtn;
-
-        const uploadBtn = document.getElementById('avatar_upload');
-        if (uploadBtn) return uploadBtn;
-    }
-
-    // 2. BLOCK persona card avatar images (they're buggy)
-    // These are the avatar images in persona cards - we don't want to trigger on them
-    const isPersonaCardAvatar = (element.tagName === 'IMG' || element.closest('img')) &&
-        (element.closest('.persona_card') ||
-            element.closest('.avatar-container') ||
-            element.closest('[class*="persona"]'));
-
-    if (isPersonaCardAvatar) {
-        // Explicitly return null - do NOT handle persona card images
-        return null;
-    }
-
-    // 3. Check Persona Set Image Button (the toolbar button ONLY)
-    // CRITICAL: Only trigger if clicking the ACTUAL BUTTON, not just any element in persona area
-    const isActualButton = element.id === 'persona_set_image_button' ||
-        element.closest('#persona_set_image_button');
-
-    if (isActualButton) {
-        // NOW find the currently selected persona's file input
-        // Look for the selected persona card (has a border_primary or selected class)
-        let activePersonaCard = document.querySelector('.persona_card.border_primary, .persona_card.selected');
-
-        if (activePersonaCard) {
-            const personaInput = activePersonaCard.querySelector('input[type="file"]');
-            if (personaInput) return personaInput;
-        }
-
-        // Fallback: find the first visible persona editing block
-        const visibleBlock = document.querySelector('.rm_ch_create_block');
-        if (visibleBlock) {
-            const personaInput = visibleBlock.querySelector('input[type="file"]');
-            if (personaInput) return personaInput;
-        }
-    }
-
-    // 4. Check User Settings
-    if (element.closest('#user_avatar_display') || element.closest('.user_avatar_display')) {
-        return document.getElementById('user_avatar_upload');
-    }
-
-    // 3. Check Character Edit Popup
-    // The popup structure varies, but usually has an input[type=file] nearby or related.
-    // We look for the popup container and then the avatar upload input within it.
-    const popup = element.closest('#character_popup');
-    if (popup) {
-        return popup.querySelector('input[type="file"][accept*="image"]');
-    }
-
-    // 4. Generic "Persona" or other avatar containers
-    // Recursive search up 4 levels to find a container that MIGHT hold a file input
-    let parent = element;
-    for (let i = 0; i < 4; i++) {
-        if (!parent) break;
-
-        // Look for typical wrapper classes
-        if (parent.classList && (parent.classList.contains('avatar') || parent.classList.contains('avatar-container') || parent.id.includes('avatar'))) {
-            // Found a potential container. Look inside for input.
-            const input = parent.querySelector('input[type="file"]');
-            if (input) return input;
-
-            // Or look for a sibling input (common in some layouts)
-            if (parent.parentElement) {
-                const siblingInput = parent.parentElement.querySelector('input[type="file"]');
-                if (siblingInput) return siblingInput;
-            }
-        }
-
-        parent = parent.parentElement;
-    }
-
-    // 5. Special Case: Character Management / Import (avatar_load_preview)
-    // The screenshot shows this maps to 'add_avatar_button'
-    if (element.id === 'avatar_load_preview' || element.closest('#avatar_load_preview')) {
-        const directInput = document.getElementById('add_avatar_button');
-        if (directInput) return directInput;
-    }
-
-    // 6. Robust Label Check (The "Gold Standard")
-    // If the clicked element is inside a label that points to a file input
-    const parentLabel = element.closest('label');
-    if (parentLabel && parentLabel.htmlFor) {
-        const input = document.getElementById(parentLabel.htmlFor);
-        if (input && input.type === 'file') return input;
-    } else if (parentLabel) {
-        // Label might contain the input directly without 'for'
-        const innerInput = parentLabel.querySelector('input[type="file"]');
-        if (innerInput) return innerInput;
-    }
-
-    // Fallback: Direct Label check (if we clicked the label itself)
-    if (element.tagName === 'LABEL') {
-        const inputId = element.getAttribute('for');
-        if (inputId) {
-            const input = document.getElementById(inputId);
-            if (input && input.type === 'file') return input;
-        }
+    // Main Character Avatar (Sidebar)
+    if (element.closest('#avatar_div')) {
+        return document.getElementById('avatar_upload') ||
+            document.getElementById('add_avatar_button') ||
+            document.querySelector('#avatar_div input[type="file"]');
     }
 
     return null;
@@ -139,14 +18,11 @@ function findAssociatedFileInput(element) {
 
 /**
  * Creates and shows the Quick Paste Modal.
- * @param {HTMLElement} targetInput - The file input to receive the pasted file.
  */
 function openQuickPasteModal(targetInput) {
-    // Remove existing modal if any
     const existing = document.getElementById('quick-paste-modal');
     if (existing) existing.remove();
 
-    // Create Modal Elements
     const modal = document.createElement('div');
     modal.id = 'quick-paste-modal';
     modal.className = 'quick-paste-modal';
@@ -164,25 +40,18 @@ function openQuickPasteModal(targetInput) {
     modal.appendChild(content);
     document.body.appendChild(modal);
 
-    // Event Listeners for the Modal
-
     // Close on click outside
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            cleanup();
-        }
+        if (e.target === modal) cleanup();
     });
 
     // Close on ESC key
     const escHandler = (e) => {
-        if (e.key === 'Escape' || e.key === 'Esc') {
-            cleanup();
-        }
+        if (e.key === 'Escape' || e.key === 'Esc') cleanup();
     };
     document.addEventListener('keydown', escHandler);
 
-    // Handle Paste (The Core Logic)
-
+    // Handle Paste
     const pasteHandler = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -207,7 +76,6 @@ function openQuickPasteModal(targetInput) {
 
     document.addEventListener('paste', pasteHandler, { capture: true });
 
-    // Cleanup function
     function cleanup() {
         modal.remove();
         document.removeEventListener('paste', pasteHandler, { capture: true });
@@ -229,32 +97,19 @@ function applyFileToInput(blob, input) {
     input.dispatchEvent(changeEvent);
 }
 
-document.addEventListener('contextmenu', (e) => {
-    // If we want to blocking context menu on ctrl+click, we might need this.
-    // But let's stick to mousedown for now.
-});
-
 // Use mousedown instead of click to intercept earlier
 document.addEventListener('mousedown', (e) => {
     // Check for Ctrl Key + Left Click (button 0)
     if (!e.ctrlKey || e.button !== 0) return;
 
-
-
     // Check if target is relevant
     const targetInput = findAssociatedFileInput(e.target);
 
     if (targetInput) {
-        // Stop default behavior (e.g. opening file explorer or dragging)
         e.preventDefault();
         e.stopPropagation();
-
-
-
-        // We use a slight timeout to ensure we don't conflict with other immediate handlers
-        // and to allow the mouseup to clear cleanly if needed
         setTimeout(() => openQuickPasteModal(targetInput), 50);
     }
 }, { capture: true });
 
-console.log(`[${MODULE_NAME}] Initialized v1.3. Listening for Ctrl+LeftClick.`);
+console.log(`[${MODULE_NAME}] Initialized. Ctrl+Click character avatar to paste image.`);
